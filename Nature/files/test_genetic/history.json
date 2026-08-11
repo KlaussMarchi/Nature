@@ -1,0 +1,401 @@
+[
+  {
+    "run": 1,
+    "at": "2026-08-11T13:39:07",
+    "model": "genetic",
+    "score": 8.00001447926825,
+    "improved": true,
+    "stopped": 50,
+    "best": {
+      "x": 2.002572437658483,
+      "y": 1.9974278738414588
+    },
+    "params": {
+      "population": 150,
+      "generations": 50,
+      "crossover": 0.7,
+      "mutation": 0.2,
+      "patience": 60
+    }
+  },
+  {
+    "run": 2,
+    "at": "2026-08-11T13:39:11",
+    "model": "genetic",
+    "score": 8.000012978628856,
+    "improved": true,
+    "stopped": 100,
+    "best": {
+      "x": 2.0025474131193404,
+      "y": 1.9974525868810742
+    },
+    "params": {
+      "population": 150,
+      "generations": 50,
+      "crossover": 0.7,
+      "mutation": 0.2,
+      "patience": 60
+    }
+  },
+  {
+    "run": 3,
+    "at": "2026-08-11T13:39:12",
+    "model": "genetic",
+    "score": 8.0000129786271,
+    "improved": true,
+    "stopped": 150,
+    "best": {
+      "x": 2.0025474130950323,
+      "y": 1.9974525869050044
+    },
+    "params": {
+      "population": 150,
+      "generations": 50,
+      "crossover": 0.7,
+      "mutation": 0.2,
+      "patience": 60
+    }
+  },
+  {
+    "run": 4,
+    "at": "2026-08-11T13:39:20",
+    "model": "genetic",
+    "score": 8.0000129786271,
+    "improved": false,
+    "stopped": 200,
+    "best": {
+      "x": 2.0025474130950323,
+      "y": 1.9974525869050044
+    },
+    "params": {
+      "population": 150,
+      "generations": 50,
+      "crossover": 0.7,
+      "mutation": 0.2,
+      "patience": 60
+    }
+  },
+  {
+    "run": 5,
+    "at": "2026-08-11T13:39:38",
+    "model": "genetic",
+    "score": 8.0000129786271,
+    "improved": false,
+    "stopped": 250,
+    "best": {
+      "x": 2.0025474130950323,
+      "y": 1.9974525869050044
+    },
+    "params": {
+      "population": 150,
+      "generations": 50,
+      "crossover": 0.7,
+      "mutation": 0.2,
+      "patience": 60
+    }
+  },
+  {
+    "run": 6,
+    "at": "2026-08-11T13:56:42",
+    "model": "genetic",
+    "score": 8.0000129786271,
+    "improved": false,
+    "stopped": 300,
+    "best": {
+      "x": 2.0025474130950323,
+      "y": 1.9974525869050044
+    },
+    "params": {
+      "population": 150,
+      "generations": 50,
+      "crossover": 0.7,
+      "mutation": 0.2,
+      "patience": 60
+    }
+  },
+  {
+    "run": 7,
+    "at": "2026-08-11T14:00:05",
+    "model": "genetic",
+    "score": 8.0000129786271,
+    "improved": false,
+    "stopped": 350,
+    "best": {
+      "x": 2.0025474130950323,
+      "y": 1.9974525869050044
+    },
+    "params": {
+      "population": 150,
+      "generations": 50,
+      "crossover": 0.7,
+      "mutation": 0.2,
+      "patience": 60
+    }
+  },
+  {
+    "run": 8,
+    "at": "2026-08-11T14:24:38",
+    "model": "genetic",
+    "score": 8.0000129786271,
+    "improved": false,
+    "stopped": 400,
+    "best": {
+      "x": 2.0025474130950323,
+      "y": 1.9974525869050044
+    },
+    "params": {
+      "population": 150,
+      "generations": 50,
+      "crossover": 0.7,
+      "mutation": 0.2,
+      "patience": 60
+    }
+  },
+  {
+    "run": 9,
+    "at": "2026-08-11T14:55:12",
+    "model": "genetic",
+    "score": 8.0000129786271,
+    "improved": false,
+    "stopped": 450,
+    "best": {
+      "x": 2.0025474130950323,
+      "y": 1.9974525869050044
+    },
+    "params": {
+      "population": 150,
+      "generations": 50,
+      "crossover": 0.7,
+      "mutation": 0.2,
+      "patience": 60
+    }
+  },
+  {
+    "run": 10,
+    "at": "2026-08-11T14:56:17",
+    "model": "genetic",
+    "score": 8.0000129786271,
+    "improved": false,
+    "stopped": 500,
+    "best": {
+      "x": 2.0025474130950323,
+      "y": 1.9974525869050044
+    },
+    "params": {
+      "population": 150,
+      "generations": 50,
+      "crossover": 0.7,
+      "mutation": 0.2,
+      "patience": 60
+    }
+  },
+  {
+    "run": 11,
+    "at": "2026-08-11T15:14:21",
+    "model": "genetic",
+    "score": 8.0000129786271,
+    "improved": false,
+    "stopped": 550,
+    "best": {
+      "x": 2.0025474130950323,
+      "y": 1.9974525869050044
+    },
+    "params": {
+      "population": 150,
+      "generations": 50,
+      "crossover": 0.7,
+      "mutation": 0.2,
+      "patience": 60
+    }
+  },
+  {
+    "run": 12,
+    "at": "2026-08-11T15:15:20",
+    "model": "genetic",
+    "score": 8.0000129786271,
+    "improved": false,
+    "stopped": 600,
+    "best": {
+      "x": 2.0025474130950323,
+      "y": 1.9974525869050044
+    },
+    "params": {
+      "population": 150,
+      "generations": 50,
+      "crossover": 0.7,
+      "mutation": 0.2,
+      "patience": 60
+    }
+  },
+  {
+    "run": 13,
+    "at": "2026-08-11T15:18:05",
+    "model": "genetic",
+    "score": 8.0000129786271,
+    "improved": false,
+    "stopped": 650,
+    "best": {
+      "x": 2.0025474130950323,
+      "y": 1.9974525869050044
+    },
+    "params": {
+      "population": 150,
+      "generations": 50,
+      "crossover": 0.7,
+      "mutation": 0.2,
+      "patience": 60
+    }
+  },
+  {
+    "run": 14,
+    "at": "2026-08-11T15:19:06",
+    "model": "genetic",
+    "score": 8.0000129786271,
+    "improved": false,
+    "stopped": 700,
+    "best": {
+      "x": 2.0025474130950323,
+      "y": 1.9974525869050044
+    },
+    "params": {
+      "population": 150,
+      "generations": 50,
+      "crossover": 0.7,
+      "mutation": 0.2,
+      "patience": 60
+    }
+  },
+  {
+    "run": 15,
+    "at": "2026-08-11T15:22:35",
+    "model": "genetic",
+    "score": 8.0000129786271,
+    "improved": false,
+    "stopped": 750,
+    "best": {
+      "x": 2.0025474130950323,
+      "y": 1.9974525869050044
+    },
+    "params": {
+      "population": 150,
+      "generations": 50,
+      "crossover": 0.7,
+      "mutation": 0.2,
+      "patience": 60
+    }
+  },
+  {
+    "run": 16,
+    "at": "2026-08-11T15:23:15",
+    "model": "genetic",
+    "score": 8.0000129786271,
+    "improved": false,
+    "stopped": 800,
+    "best": {
+      "x": 2.0025474130950323,
+      "y": 1.9974525869050044
+    },
+    "params": {
+      "population": 150,
+      "generations": 50,
+      "crossover": 0.7,
+      "mutation": 0.2,
+      "patience": 60
+    }
+  },
+  {
+    "run": 17,
+    "at": "2026-08-11T15:23:40",
+    "model": "genetic",
+    "score": 8.0000129786271,
+    "improved": false,
+    "stopped": 850,
+    "best": {
+      "x": 2.0025474130950323,
+      "y": 1.9974525869050044
+    },
+    "params": {
+      "population": 150,
+      "generations": 50,
+      "crossover": 0.7,
+      "mutation": 0.2,
+      "patience": 60
+    }
+  },
+  {
+    "run": 18,
+    "at": "2026-08-11T15:56:00",
+    "model": "genetic",
+    "score": 8.0000129786271,
+    "improved": false,
+    "stopped": 900,
+    "best": {
+      "x": 2.0025474130950323,
+      "y": 1.9974525869050044
+    },
+    "params": {
+      "population": 150,
+      "generations": 50,
+      "crossover": 0.7,
+      "mutation": 0.2,
+      "patience": 60
+    }
+  },
+  {
+    "run": 19,
+    "at": "2026-08-11T16:10:54",
+    "model": "genetic",
+    "score": 8.0000129786271,
+    "improved": false,
+    "stopped": 950,
+    "best": {
+      "x": 2.0025474130950323,
+      "y": 1.9974525869050044
+    },
+    "params": {
+      "population": 150,
+      "generations": 50,
+      "crossover": 0.7,
+      "mutation": 0.2,
+      "patience": 60
+    }
+  },
+  {
+    "run": 20,
+    "at": "2026-08-11T16:20:41",
+    "model": "genetic",
+    "score": 8.0000129786271,
+    "improved": false,
+    "stopped": 1000,
+    "best": {
+      "x": 2.0025474130950323,
+      "y": 1.9974525869050044
+    },
+    "params": {
+      "population": 150,
+      "generations": 50,
+      "crossover": 0.7,
+      "mutation": 0.2,
+      "patience": 60
+    }
+  },
+  {
+    "run": 21,
+    "at": "2026-08-11T16:23:26",
+    "model": "genetic",
+    "score": 8.0000129786271,
+    "improved": false,
+    "stopped": 1050,
+    "best": {
+      "x": 2.0025474130950323,
+      "y": 1.9974525869050044
+    },
+    "params": {
+      "population": 150,
+      "generations": 50,
+      "crossover": 0.7,
+      "mutation": 0.2,
+      "patience": 60
+    }
+  }
+]

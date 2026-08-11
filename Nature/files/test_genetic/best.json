@@ -1,0 +1,26 @@
+{
+  "model": "genetic",
+  "score": 8.0000129786271,
+  "best": {
+    "x": 2.0025474130950323,
+    "y": 1.9974525869050044
+  },
+  "genome": [
+    2.0025474130950323,
+    1.9974525869050044
+  ],
+  "names": [
+    "x",
+    "y"
+  ],
+  "stopped": 1050,
+  "runs": 21,
+  "params": {
+    "population": 150,
+    "generations": 50,
+    "crossover": 0.7,
+    "mutation": 0.2,
+    "patience": 60
+  },
+  "updated": "2026-08-11T16:23:26"
+}
