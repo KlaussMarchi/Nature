@@ -1,12 +1,12 @@
 import numpy as np
 from tqdm.auto import tqdm
-from Processing.Problem.index import Problem
-from Processing.Randomizer.index import Randomizer
-from Processing.Pool.index import Pool
-from Processing.Stopper.index import Stopper
-from Processing.Recorder.index import Recorder
-from Processing.Memory.index import Memory
-from Processing.Portrait.index import Portrait
+from ...Processing.Problem.index import Problem
+from ...Processing.Randomizer.index import Randomizer
+from ...Processing.Pool.index import Pool
+from ...Processing.Stopper.index import Stopper
+from ...Processing.Recorder.index import Recorder
+from ...Processing.Memory.index import Memory
+from ...Processing.Portrait.index import Portrait
 
 
 # MODELO DE EVOLUÇÃO DIFERENCIAL AUTO-ADAPTATIVA (JADE / SHADE / L-SHADE) — CRIADO PELO NatureSelector COM
@@ -24,7 +24,7 @@ class AdaptiveDE:
     P_MAX    = 0.2  # teto do p sorteado por indivíduo na shade (Tanabe & Fukunaga 2013: p_i ~ U[2/N, 0.2])
 
     def __init__(self, objective, variables, maximize=True, population=None, generations=300, variant='lshade',
-                 pbest=0.11, archive=2.6, patience=None, constraints=None, seed=None, memory=None,
+                 pbest=0.11, archive=2.6, patience=None, target=None, constraints=None, seed=None, memory=None,
                  workers=1, backend='thread', verbose=True):
         if variant not in self.VARIANTS:
             raise ValueError(f"variant inválida '{variant}'; use {self.VARIANTS}.")
@@ -47,6 +47,7 @@ class AdaptiveDE:
         self.pbest       = float(pbest)
         self.archive     = float(archive)
         self.patience    = patience
+        self.target      = target
         self.seed        = seed
         self.memoryPath  = memory
         self.workers     = workers
@@ -59,7 +60,7 @@ class AdaptiveDE:
         self.recorder = Recorder(self.problem.genes, self.generations, self.verbose, f'DE {self.variant.upper()}')
         self.memory   = Memory(self.memoryPath, self.variant, self.config(), self.problem, self.recorder)
         self.stopped  = self.generations
-        stop          = Stopper(self.patience)
+        stop          = Stopper(self.patience, self.target, self.problem.weight)
         pool          = Pool(self.workers, self.backend, self.seed)
 
         mapFunc = pool.start()
@@ -194,7 +195,7 @@ class AdaptiveDE:
 
     def config(self):
         return {'population': self.nInit, 'generations': self.generations, 'variant': self.variant,
-                'pbest': self.pbest, 'archive': self.archive, 'patience': self.patience, 'maxNfe': self.maxNfe}
+                'pbest': self.pbest, 'archive': self.archive, 'patience': self.patience, 'target': self.target, 'maxNfe': self.maxNfe}
 
     # O RETRATO DESTE RUN — O NatureSelector PENDURA plotMetrics/plotGraph/plotVariables NELE
     def portrait(self):

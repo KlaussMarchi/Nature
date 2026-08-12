@@ -1,0 +1,102 @@
+[
+  {
+    "run": 1,
+    "at": "2026-08-12T17:30:16",
+    "model": "genetic",
+    "score": 8.00001447926825,
+    "improved": true,
+    "stopped": 50,
+    "best": {
+      "x": 2.002572437658483,
+      "y": 1.9974278738414588
+    },
+    "params": {
+      "population": 150,
+      "generations": 50,
+      "crossover": 0.7,
+      "mutation": 0.2,
+      "patience": 60,
+      "target": null
+    }
+  },
+  {
+    "run": 2,
+    "at": "2026-08-12T17:33:53",
+    "model": "genetic",
+    "score": 8.000012978628856,
+    "improved": true,
+    "stopped": 100,
+    "best": {
+      "x": 2.0025474131193404,
+      "y": 1.9974525868810742
+    },
+    "params": {
+      "population": 150,
+      "generations": 50,
+      "crossover": 0.7,
+      "mutation": 0.2,
+      "patience": 60,
+      "target": null
+    }
+  },
+  {
+    "run": 3,
+    "at": "2026-08-12T17:35:09",
+    "model": "genetic",
+    "score": 8.0000129786271,
+    "improved": true,
+    "stopped": 150,
+    "best": {
+      "x": 2.0025474130950323,
+      "y": 1.9974525869050044
+    },
+    "params": {
+      "population": 150,
+      "generations": 50,
+      "crossover": 0.7,
+      "mutation": 0.2,
+      "patience": 60,
+      "target": null
+    }
+  },
+  {
+    "run": 4,
+    "at": "2026-08-12T18:08:32",
+    "model": "genetic",
+    "score": 8.0000129786271,
+    "improved": false,
+    "stopped": 200,
+    "best": {
+      "x": 2.0025474130950323,
+      "y": 1.9974525869050044
+    },
+    "params": {
+      "population": 150,
+      "generations": 50,
+      "crossover": 0.7,
+      "mutation": 0.2,
+      "patience": 60,
+      "target": null
+    }
+  },
+  {
+    "run": 5,
+    "at": "2026-08-12T18:09:44",
+    "model": "genetic",
+    "score": 8.0000129786271,
+    "improved": false,
+    "stopped": 250,
+    "best": {
+      "x": 2.0025474130950323,
+      "y": 1.9974525869050044
+    },
+    "params": {
+      "population": 150,
+      "generations": 50,
+      "crossover": 0.7,
+      "mutation": 0.2,
+      "patience": 60,
+      "target": null
+    }
+  }
+]

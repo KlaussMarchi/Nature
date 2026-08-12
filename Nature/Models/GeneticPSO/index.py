@@ -1,12 +1,12 @@
 import numpy as np
 from deap import tools
-from Processing.Problem.index import Problem
-from Processing.Randomizer.index import Randomizer
-from Processing.Pool.index import Pool
-from Processing.Stopper.index import Stopper
-from Processing.Recorder.index import Recorder
-from Processing.Memory.index import Memory
-from Processing.Portrait.index import Portrait
+from ...Processing.Problem.index import Problem
+from ...Processing.Randomizer.index import Randomizer
+from ...Processing.Pool.index import Pool
+from ...Processing.Stopper.index import Stopper
+from ...Processing.Recorder.index import Recorder
+from ...Processing.Memory.index import Memory
+from ...Processing.Portrait.index import Portrait
 
 
 # MODELO HÍBRIDO AG + PSO (METADE MELHOR SE REPRODUZ, METADE PIOR VOA) — CRIADO PELO NatureSelector COM
@@ -21,7 +21,7 @@ class GeneticPSO:
 
     def __init__(self, objective, variables, maximize=True, population=100, generations=200, crossover=0.9,
                  mutation=0.3, inertia=(0.9, 0.4), cognitive=(2.5, 0.5), social=(0.5, 2.5),
-                 patience=None, constraints=None, seed=None, memory=None, workers=1, backend='thread', verbose=True):
+                 patience=None, target=None, constraints=None, seed=None, memory=None, workers=1, backend='thread', verbose=True):
         if population < 4:
             raise ValueError('population deve ser >= 4 (metade AG, metade PSO).')
         self.problem = Problem(objective, variables, maximize, constraints, backend)
@@ -34,6 +34,7 @@ class GeneticPSO:
         self.cognitive   = self.pair(cognitive)
         self.social      = self.pair(social)
         self.patience    = patience
+        self.target      = target
         self.seed        = seed
         self.memoryPath  = memory
         self.workers     = workers
@@ -50,7 +51,7 @@ class GeneticPSO:
         self.recorder = Recorder(self.problem.genes, self.generations, self.verbose, 'Híbrido AG+PSO')
         self.memory   = Memory(self.memoryPath, 'genetic_pso', self.config(), self.problem, self.recorder)
         self.stopped  = self.generations
-        stop          = Stopper(self.patience)
+        stop          = Stopper(self.patience, self.target, self.problem.weight)
         pool          = Pool(self.workers, self.backend, self.seed)
 
         mapFunc = pool.start()
@@ -121,7 +122,7 @@ class GeneticPSO:
     def config(self):
         return {'population': self.population, 'generations': self.generations, 'crossover': self.crossover,
                 'mutation': self.mutation, 'inertia': list(self.inertia), 'cognitive': list(self.cognitive),
-                'social': list(self.social), 'patience': self.patience}
+                'social': list(self.social), 'patience': self.patience, 'target': self.target}
 
     def breed(self, elite, eliteWf, rng):
         low, up = list(self.problem.low), list(self.problem.up)

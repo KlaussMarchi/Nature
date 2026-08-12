@@ -1,5 +1,5 @@
 import numpy as np
-from Processing.Gaussian.index import Gaussian
+from ..Gaussian.index import Gaussian
 
 
 # CLASSE QUE COMPARA AS CORRIDAS DE UM MESMO PROBLEMA A PARTIR DO DataFrame QUE A CÉLULA JÁ MONTA. SÃO DOIS

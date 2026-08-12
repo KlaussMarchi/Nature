@@ -1,14 +1,14 @@
-from Models.Genetic.index import GeneticOptimizer
-from Models.PSO.index import PSO
-from Models.GeneticPSO.index import GeneticPSO
-from Models.Differential.index import DifferentialEvolution
-from Models.AdaptiveDE.index import AdaptiveDE
+from .Models.Genetic.index import GeneticOptimizer
+from .Models.PSO.index import PSO
+from .Models.GeneticPSO.index import GeneticPSO
+from .Models.DE.index import DifferentialEvolution
+from .Models.AdaptiveDE.index import AdaptiveDE
 
 
 # CLASSE-FACHADA QUE ESCOLHE O MODELO PELO NOME E DELEGA update()/portrait()/info() — PONTO DE ENTRADA DOS
 # NOTEBOOKS, A ÚNICA COISA QUE ELES PRECISAM IMPORTAR.
 class NatureSelector:
-    NAMES = ('genetic', 'pso', 'genetic_pso', 'differential', 'adaptive_de')
+    NAMES = ('genetic', 'pso', 'genetic_pso', 'de', 'adaptive_de')
 
     def __init__(self, name, params, memory=None, n_gaussian=1):
         self.name   = name
@@ -34,7 +34,7 @@ class NatureSelector:
         if self.name == 'genetic_pso':
             return GeneticPSO(**params)
 
-        if self.name == 'differential':
+        if self.name == 'de':
             return DifferentialEvolution(**params)
 
         if self.name == 'adaptive_de':
@@ -82,3 +82,12 @@ class NatureSelector:
 
         row = {k: round(v, 5) if isinstance(v, float) else v for k, v in self.best.items()}
         return {'algorithm': self.name, 'f': self.score, 'stopped': self.optimizer.stopped, **row}
+
+    # A SOLUÇÃO EM JSON, EM PRECISÃO CHEIA E COM AS VARIÁVEIS NUM CAMPO SÓ — É O QUE SE COPIA PARA O RELATÓRIO
+    # OU SE GRAVA EM ARQUIVO, ENQUANTO O info() É A LINHA ACHATADA E ARREDONDADA QUE VAI PARA O QUADRO.
+    def getBest(self):
+        if self.best is None:
+            self.update()
+
+        return {'algorithm': self.name, 'f': self.score, 'runs': len(self.scores),
+                'stopped': self.optimizer.stopped, 'variables': self.best}

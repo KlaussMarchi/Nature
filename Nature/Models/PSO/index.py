@@ -1,11 +1,11 @@
 import numpy as np
-from Processing.Problem.index import Problem
-from Processing.Randomizer.index import Randomizer
-from Processing.Pool.index import Pool
-from Processing.Stopper.index import Stopper
-from Processing.Recorder.index import Recorder
-from Processing.Memory.index import Memory
-from Processing.Portrait.index import Portrait
+from ...Processing.Problem.index import Problem
+from ...Processing.Randomizer.index import Randomizer
+from ...Processing.Pool.index import Pool
+from ...Processing.Stopper.index import Stopper
+from ...Processing.Recorder.index import Recorder
+from ...Processing.Memory.index import Memory
+from ...Processing.Portrait.index import Portrait
 
 
 # MODELO DE ENXAME DE PARTÍCULAS — CRIADO PELO NatureSelector COM name='pso'. MONO-OBJETIVO.
@@ -19,7 +19,7 @@ class PSO:
 
     def __init__(self, objective, variables, maximize=True, particles=50, iterations=200,
                  inertia=(0.9, 0.4), cognitive=(2.5, 0.5), social=(0.5, 2.5), topology='global',
-                 patience=None, constraints=None, seed=None, memory=None, workers=1, backend='thread', verbose=True):
+                 patience=None, target=None, constraints=None, seed=None, memory=None, workers=1, backend='thread', verbose=True):
         if particles < 2:
             raise ValueError('particles deve ser >= 2.')
         if topology not in ('global', 'ring'):
@@ -33,6 +33,7 @@ class PSO:
         self.social     = self.pair(social)
         self.topology   = topology
         self.patience   = patience
+        self.target     = target
         self.seed       = seed
         self.memoryPath = memory
         self.workers    = workers
@@ -51,7 +52,7 @@ class PSO:
         self.recorder = Recorder(self.problem.genes, self.iterations, self.verbose, 'Enxame PSO', 'it')
         self.memory   = Memory(self.memoryPath, 'pso', self.config(), self.problem, self.recorder)
         self.stopped  = self.iterations
-        stop          = Stopper(self.patience)
+        stop          = Stopper(self.patience, self.target, self.problem.weight)
         pool          = Pool(self.workers, self.backend, self.seed)
 
         mapFunc = pool.start()
@@ -128,7 +129,7 @@ class PSO:
 
     def config(self):
         return {'particles': self.particles, 'iterations': self.iterations, 'inertia': list(self.inertia),
-                'cognitive': list(self.cognitive), 'social': list(self.social), 'topology': self.topology, 'patience': self.patience}
+                'cognitive': list(self.cognitive), 'social': list(self.social), 'topology': self.topology, 'patience': self.patience, 'target': self.target}
 
     def leaders(self, pbest, pbestWf):
         if self.topology == 'global':

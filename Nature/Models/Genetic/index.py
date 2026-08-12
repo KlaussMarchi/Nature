@@ -1,12 +1,12 @@
 import numpy as np
 from deap import base, creator, tools, algorithms
-from Processing.Problem.index import Problem
-from Processing.Randomizer.index import Randomizer
-from Processing.Pool.index import Pool
-from Processing.Stopper.index import Stopper
-from Processing.Recorder.index import Recorder
-from Processing.Memory.index import Memory
-from Processing.Portrait.index import Portrait
+from ...Processing.Problem.index import Problem
+from ...Processing.Randomizer.index import Randomizer
+from ...Processing.Pool.index import Pool
+from ...Processing.Stopper.index import Stopper
+from ...Processing.Recorder.index import Recorder
+from ...Processing.Memory.index import Memory
+from ...Processing.Portrait.index import Portrait
 
 
 # MODELO DE ALGORITMO GENÉTICO (μ+λ SOBRE A DEAP) — CRIADO PELO NatureSelector COM name='genetic'.
@@ -17,7 +17,7 @@ class GeneticOptimizer:
     MUT_ETA_GROWTH = 5.0
 
     def __init__(self, objective, variables, maximize=True, population=100, generations=200, crossover=0.7,
-                 mutation=0.2, patience=None, constraints=None, seed=None, memory=None, workers=1, backend='thread', verbose=True):
+                 mutation=0.2, patience=None, target=None, constraints=None, seed=None, memory=None, workers=1, backend='thread', verbose=True):
         if population < 2:
             raise ValueError('population deve ser >= 2.')
         if crossover + mutation > 1.0 + 1e-9:
@@ -28,6 +28,7 @@ class GeneticOptimizer:
         self.crossover   = float(crossover)
         self.mutation    = float(mutation)
         self.patience    = patience
+        self.target      = target
         self.seed        = seed
         self.memoryPath  = memory
         self.workers     = workers
@@ -61,7 +62,7 @@ class GeneticOptimizer:
         self.memory   = Memory(self.memoryPath, 'genetic', self.config(), self.problem, self.recorder)
         self.hof      = tools.HallOfFame(1)
         self.stopped  = self.generations
-        stop          = Stopper(self.patience)
+        stop          = Stopper(self.patience, self.target, self.problem.weight)
         pool          = Pool(self.workers, self.backend, self.seed)
 
         mapFunc = pool.start()
@@ -131,7 +132,7 @@ class GeneticOptimizer:
         return self.best, self.bestScore
 
     def config(self):
-        return {'population': self.population, 'generations': self.generations, 'crossover': self.crossover, 'mutation': self.mutation, 'patience': self.patience}
+        return {'population': self.population, 'generations': self.generations, 'crossover': self.crossover, 'mutation': self.mutation, 'patience': self.patience, 'target': self.target}
 
     def genome(self):
         return [np.random.uniform(g['low'], g['up']) if g['type'] == 'real'

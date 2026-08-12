@@ -1,17 +1,22 @@
 import numpy as np
 
 
-# CLASSE DO EARLY STOPPING POR PACIÊNCIA — CONSULTADA A CADA GERAÇÃO NO LOOP DE TODO MODELO.
+# CLASSE DO EARLY STOPPING POR PACIÊNCIA E POR ALVO — CONSULTADA A CADA GERAÇÃO NO LOOP DE TODO MODELO.
 class Stopper:
     TOL = 1e-9
 
-    def __init__(self, patience):
+    def __init__(self, patience, target=None, weight=1.0):
         self.patience = patience
+        # O alvo chega como f cru (o valor que encerra a busca), e a comparação acontece no sinal ponderado
+        # que os modelos passam ao check() — por isso ele entra convertido, uma vez só.
+        self.target   = None if target is None else weight * target
         self.best     = -np.inf
         self.bad      = 0
 
     def check(self, signal):
         # Early stopping por sinal ponderado (maior = melhor); devolve True para parar.
+        if self.target is not None and signal >= self.target:
+            return True
         if self.patience is None:
             return False
         if signal > self.best + self.TOL:

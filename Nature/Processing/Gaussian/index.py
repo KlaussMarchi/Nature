@@ -29,6 +29,7 @@ class Gaussian:
     DECADE = 2.0       # meia-janela quando a amostra não tem dispersão nenhuma (décadas no erro)
     BINS   = (5, 12)   # piso e teto de bins: abaixo de 5 não sobra forma para ler, acima de 12 cada bin vira ruído
     TINY   = 1e-12     # dispersão relativa abaixo disso é ruído de float: as corridas caíram todas no mesmo ponto
+    MIN    = 5         # piso da amostra depois do descarte: abaixo disso o σ que serve de régua não tem base
 
     def __init__(self, scores, target=None, up=False, name=''):
         self.name = name
@@ -40,6 +41,12 @@ class Gaussian:
         self.log  = target is not None
         self.u    = np.log10(np.maximum(self.data, self.FLOOR)) if self.log else self.data
 
+        # A corrida que estourou entra na média, no σ e no Shapiro e sozinha derruba a normalidade de todas as
+        # outras: o descarte vem antes de qualquer conta, e o painel já desenha só o que sobrou.
+        keep      = self.clean()
+        self.data = self.data[keep]
+        self.u    = self.u[keep]
+
     # t CRÍTICO DA TABELA PARA n-1 GRAUS DE LIBERDADE, PELA LINHA MAIS PRÓXIMA QUANDO NÃO HÁ A EXATA
     def get(self, n):
         df = n - 1
@@ -50,6 +57,16 @@ class Gaussian:
     # W CRÍTICO A 5%, SATURADO NAS PONTAS DA TABELA
     def getW(self, n):
         return self.SHAPIRO[min(max(n, min(self.SHAPIRO)), max(self.SHAPIRO))]
+
+    # CRITÉRIO DE STUDENT: A CORRIDA A MAIS DE t·σ DA MÉDIA NÃO VEIO DA MESMA POPULAÇÃO DAS OUTRAS. UMA PASSADA
+    # SÓ, PORQUE REFAZER µ E σ SEM A DESCARTADA ENCOLHE O σ E A RODADA SEGUINTE PASSA A COMER A CAUDA BOA.
+    def clean(self):
+        n     = len(self.u)
+        sigma = float(self.u.std(ddof=1)) if n > self.MIN else 0.0
+
+        if sigma <= 0:
+            return np.ones(n, bool)
+        return np.abs(self.u - self.u.mean()) <= self.get(n) * sigma
 
     # AMOSTRA SEM DISPERSÃO: TODO MUNDO ACHOU O MESMO ÓTIMO E O QUE SOBRA É RUÍDO DO float. NÃO HÁ JANELA,
     # BINS, NORMAL NEM TESTE DE NORMALIDADE PARA TIRAR DAÍ — E O EIXO NEM CONSEGUE SEPARAR OS VALORES.
@@ -98,8 +115,7 @@ class Gaussian:
         top = max(float(dens.max()), 0.0 if y is None else float(y.max()))
 
         ax.bar(self.spot(edges[:-1]), dens, width=self.spot(edges[1:]) - self.spot(edges[:-1]), align='edge',
-               color='steelblue', alpha=0.40, edgecolor='#1f3b4d', linewidth=0.9,
-               label=f'{bins} bins' if bins > 1 else 'corridas idênticas')
+               color='steelblue', alpha=0.40, edgecolor='#1f3b4d', linewidth=0.9, label=f'{bins} bins')
 
         # Cada corrida no seu valor real, empilhada dentro da própria barra: a barra é a pilha de pontos.
         slot = np.clip(np.digitize(self.u, edges) - 1, 0, bins - 1)
