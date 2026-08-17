@@ -1,3 +1,4 @@
+from functools import partial
 from .Models.Genetic.index import GeneticOptimizer
 from .Models.PSO.index import PSO
 from .Models.GeneticPSO.index import GeneticPSO
@@ -5,12 +6,15 @@ from .Models.DE.index import DifferentialEvolution
 from .Models.AdaptiveDE.index import AdaptiveDE
 
 
-# CLASSE-FACHADA QUE ESCOLHE O MODELO PELO NOME E DELEGA update()/portrait()/info() — PONTO DE ENTRADA DOS
-# NOTEBOOKS, A ÚNICA COISA QUE ELES PRECISAM IMPORTAR.
+# FACHADA QUE ESCOLHE O MODELO PELO NOME E DELEGA update()/portrait()/info() — O ÚNICO IMPORT DO NOTEBOOK.
 class NatureSelector:
-    NAMES = ('genetic', 'pso', 'genetic_pso', 'de', 'adaptive_de')
+    MODELS = {'genetic': GeneticOptimizer, 'pso': PSO, 'genetic_pso': GeneticPSO, 'de': DifferentialEvolution,
+              'adaptive_de': AdaptiveDE, 'graded_de': partial(AdaptiveDE, variant='graded')}
+    NAMES  = tuple(MODELS)
 
     def __init__(self, name, params, memory=None, n_gaussian=1):
+        if name not in self.MODELS:
+            raise ValueError(f"algoritmo '{name}' não existe; use um de {self.NAMES}.")
         self.name   = name
         self.params = {**params, 'memory': memory} if memory else params
         self.n      = int(n_gaussian)
@@ -25,24 +29,9 @@ class NatureSelector:
         self.optimizer = self.get(self.params)
 
     def get(self, params):
-        if self.name == 'genetic':
-            return GeneticOptimizer(**params)
+        return self.MODELS[self.name](**params)
 
-        if self.name == 'pso':
-            return PSO(**params)
-
-        if self.name == 'genetic_pso':
-            return GeneticPSO(**params)
-
-        if self.name == 'de':
-            return DifferentialEvolution(**params)
-
-        if self.name == 'adaptive_de':
-            return AdaptiveDE(**params)
-
-        raise ValueError(f"algoritmo '{self.name}' não existe; use um de {self.NAMES}.")
-
-    # SEMENTES DAS n CORRIDAS: CONSECUTIVAS A PARTIR DA SEMENTE DADA, PARA A AMOSTRA INTEIRA SER REPRODUTÍVEL
+    # CONSECUTIVAS A PARTIR DA SEMENTE DADA, PARA A AMOSTRA INTEIRA SER REPRODUTÍVEL
     def seeds(self):
         seed = self.params.get('seed')
         return [None] * self.n if seed is None else [seed + i for i in range(self.n)]
@@ -61,7 +50,7 @@ class NatureSelector:
         self.best, self.score, self.optimizer = keep
         return self.best, self.score
 
-    # O RETRATO NASCE NO MODELO, QUE NÃO SABE COM QUE NOME FOI ESCOLHIDO — SEM ISSO NENHUM PAINEL DIZ DE QUEM É
+    # O MODELO NÃO SABE COM QUE NOME FOI ESCOLHIDO, E SEM ISSO NENHUM PAINEL DIZ DE QUEM É
     def portrait(self):
         portrait      = self.optimizer.portrait()
         portrait.name = self.name
@@ -83,11 +72,9 @@ class NatureSelector:
         row = {k: round(v, 5) if isinstance(v, float) else v for k, v in self.best.items()}
         return {'algorithm': self.name, 'f': self.score, 'stopped': self.optimizer.stopped, **row}
 
-    # A SOLUÇÃO EM JSON, EM PRECISÃO CHEIA E COM AS VARIÁVEIS NUM CAMPO SÓ — É O QUE SE COPIA PARA O RELATÓRIO
-    # OU SE GRAVA EM ARQUIVO, ENQUANTO O info() É A LINHA ACHATADA E ARREDONDADA QUE VAI PARA O QUADRO.
+    # PRECISÃO CHEIA E VARIÁVEIS NUM CAMPO SÓ, AO CONTRÁRIO DO info(), QUE É A LINHA ACHATADA DO QUADRO
     def getBest(self):
         if self.best is None:
             self.update()
 
-        return {'algorithm': self.name, 'f': self.score, 'runs': len(self.scores),
-                'stopped': self.optimizer.stopped, 'variables': self.best}
+        return {'algorithm': self.name, 'f': self.score, 'runs': len(self.scores), 'stopped': self.optimizer.stopped, 'variables': self.best}

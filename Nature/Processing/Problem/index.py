@@ -3,8 +3,7 @@ import warnings
 import numpy as np
 
 
-# CLASSE QUE TRADUZ O PROBLEMA DO USUÁRIO (VARIÁVEIS, BOUNDS, RESTRIÇÕES) EM GENOMA NUMÉRICO — CRIADA NO
-# __init__ DE TODO MODELO E CHAMADA A CADA AVALIAÇÃO DA POPULAÇÃO.
+# TRADUZ O PROBLEMA DO USUÁRIO (VARIÁVEIS, BOUNDS, RESTRIÇÕES) EM GENOMA NUMÉRICO.
 class Problem:
     TYPES = ('real', 'int', 'cat', 'bool')
     WORST = 1e12
@@ -14,7 +13,7 @@ class Problem:
 
         if isinstance(maximize, (list, tuple)):
             raise ValueError('maximize deve ser bool: o framework é mono-objetivo.')
-        # Sinal do sentido da busca: todo modelo maximiza raw * weight, então minimizar é só inverter o sinal.
+        # todo modelo maximiza raw * weight: minimizar é só inverter o sinal
         self.weight = 1.0 if maximize else -1.0
 
         if not isinstance(variables, dict) or not variables:
@@ -23,7 +22,7 @@ class Problem:
         self.nVars = len(self.names)
         self.genes = [self.gene(n, variables[n]) for n in self.names]
         self.low   = np.array([g['low'] for g in self.genes])
-        # Teto "seguro": evita divisão por zero em variáveis fixas (low == up).
+        # teto seguro: evita divisão por zero em variáveis fixas (low == up)
         self.up    = np.array([max(g['up'], g['low'] + 1e-9) for g in self.genes])
 
         self.constraints = [constraints] if callable(constraints) else list(constraints or [])
@@ -72,14 +71,13 @@ class Problem:
             if t == 'cat':  out[g['name']] = g['values'][int(round(v))]
         return out
 
-    # CAMINHO INVERSO DO decode: O Portrait PRECISA DO GENOMA PARA FIXAR AS OUTRAS VARIÁVEIS AO FATIAR O RELEVO
+    # O Portrait PRECISA DO GENOMA PARA FIXAR AS OUTRAS VARIÁVEIS AO FATIAR O RELEVO
     def encode(self, best):
         return np.array([g['values'].index(best[g['name']]) if g['type'] == 'cat' else float(best[g['name']])
                          for g in self.genes])
 
+    # nan/inf SEQUESTRAM O argmax E VIRAM "MELHOR SOLUÇÃO" PARA SEMPRE: ENTRAM COMO PENALIDADE
     def valid(self, score):
-        # nan/inf sequestram o argmax e viram "melhor solução" para sempre (uma simulação que falhou num
-        # ponto contamina a campanha inteira): entram como penalidade, igual a uma restrição violada.
         if all(math.isfinite(s) for s in score):
             return score
         if not self.warned:
@@ -99,7 +97,7 @@ class Problem:
     def score(self, X, mapFunc):
         if self.backend == 'vector':
             out = np.asarray(self.objective(np.asarray(X, float)), float).reshape(len(X), -1)
-            # O caminho vetorizado não passa pelo evaluate: checa restrições aqui.
+            # o caminho vetorizado não passa pelo evaluate: checa restrições aqui
             if self.constraints:
                 for i, row in enumerate(X):
                     if not all(c(self.decode(row)) for c in self.constraints):

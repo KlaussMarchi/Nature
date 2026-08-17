@@ -1,8 +1,10 @@
 import numpy as np
+import matplotlib.pyplot as plt
+from scipy import stats
 
 
-# CLASSE QUE DESENHA UM RUN — CONVERGÊNCIA, RELEVO E DISPERSÃO POR VARIÁVEL. CRIADA PELOS plot* DE TODO
-# MODELO, SEMPRE DEPOIS DO update(), E NUNCA CHAMADA DIRETO PELO NOTEBOOK.
+# DESENHA UM RUN: CONVERGÊNCIA, RELEVO E DISPERSÃO POR VARIÁVEL. CRIADA PELOS plot* DO MODELO, NUNCA PELO
+# NOTEBOOK.
 class Portrait:
     SPAN = 100    # razão entre o maior e o menor valor a partir da qual a métrica vai para escala log
     GRID = 120    # resolução do relevo do plotGraph (GRID² avaliações da objective)
@@ -18,13 +20,11 @@ class Portrait:
         self.name      = name
         self.rng       = np.random.default_rng(0)  # subamostragem do scatter, isolada da busca
 
-    # O NOME DO ALGORITMO ENTRE PARÊNTESES: SÃO TODOS RETRATOS DE UMA CORRIDA SÓ, E O TÍTULO É O ÚNICO LUGAR
-    # QUE DIZ DE QUAL. QUEM CRIA O RETRATO É O MODELO, QUE NÃO SABE O NOME, ENTÃO SEM ELE O TÍTULO FICA IGUAL.
+    # QUEM CRIA O RETRATO É O MODELO, QUE NÃO SABE O PRÓPRIO NOME: SEM ELE O TÍTULO SAI SEM PARÊNTESES
     def tag(self, title):
         return f'{title} ({self.name})' if self.name else title
 
-    # NUVEM DE AVALIADOS SEM OS PENALIZADOS: UM |f| >= WORST ESTÁ ORDENS DE GRANDEZA ALÉM DO RESTO E
-    # SOZINHO ACHATA TODOS OS PAINÉIS.
+    # SEM OS PENALIZADOS: UM |f| >= WORST SOZINHO ACHATA TODOS OS PAINÉIS
     def samples(self):
         X, y, gen = self.recorder.cloud()
         if y is None:
@@ -32,7 +32,7 @@ class Portrait:
         keep = np.abs(y) < self.problem.WORST
         return (X[keep], y[keep], gen[keep]) if keep.any() else (None, None, None)
 
-    # AS DUAS VARIÁVEIS DE MAIOR |ρ| DE SPEARMAN CONTRA A MÉTRICA — AS QUE MAIS EXPLICAM O RESULTADO
+    # AS DUAS VARIÁVEIS DE MAIOR |ρ| DE SPEARMAN CONTRA A MÉTRICA
     def impact(self, X, y):
         if X is None or self.problem.nVars <= 2:
             return list(range(self.problem.nVars))[:2]
@@ -41,31 +41,26 @@ class Portrait:
         return list(np.argsort(rank)[::-1][:2])
 
     def spearman(self, x, y):
-        rx, ry = np.argsort(np.argsort(x)), np.argsort(np.argsort(y))
-        return float(np.corrcoef(rx, ry)[0, 1])
+        return float(stats.spearmanr(x, y).statistic)
 
-    def close(self, plt, save):
+    def close(self, save):
         plt.tight_layout()
         if save:
             plt.savefig(save, dpi=150, bbox_inches='tight')
         plt.show()
 
     def plotMetrics(self, save=None):
-        import matplotlib.pyplot as plt
-
         plt.figure(figsize=(12, 4.5))
         self.metrics(plt.gca())
-        self.close(plt, save)
+        self.close(save)
 
-    # A CONVERGÊNCIA NO EIXO QUE O CHAMADOR ABRIU: A FAIXA DA POPULAÇÃO E O MELHOR ACUMULADO ATÉ ALI
+    # A FAIXA DA POPULAÇÃO E O MELHOR ACUMULADO, NO EIXO QUE O CHAMADOR ABRIU
     def metrics(self, ax):
         records  = self.recorder.records
         gen      = records['gen']
         maximize = self.problem.weight > 0
-        best     = np.array([np.ravel(v)[0] for v in records['max' if maximize else 'min']])
-        best     = np.maximum.accumulate(best) if maximize else np.minimum.accumulate(best)
-        lo = np.array([np.ravel(v)[0] for v in records['min']])
-        hi = np.array([np.ravel(v)[0] for v in records['max']])
+        lo, hi   = np.asarray(records['min'])[:, 0], np.asarray(records['max'])[:, 0]
+        best     = np.maximum.accumulate(hi) if maximize else np.minimum.accumulate(lo)
 
         ax.fill_between(gen, lo, hi, color='steelblue', alpha=0.25, linewidth=0, label='Population')
         ax.plot(gen, best, color='crimson', linewidth=2.0, label='Current Best')
@@ -76,14 +71,13 @@ class Portrait:
                xlabel=self.xLabel, ylabel='Métrica')
         ax.legend(); ax.grid(True, alpha=0.3, which='both')
 
-    # O RELEVO JÁ EM LOG, CALCULADO UMA VEZ — O plotGraph E O Plotter DESENHAM O MESMO RESULTADO
+    # O RELEVO EM LOG, CALCULADO UMA VEZ: O plotGraph E O Plotter DESENHAM O MESMO RESULTADO
     def landscape(self):
         X, y, _ = self.samples()
         ix, iy  = self.impact(X, y)
         gx, gy  = self.problem.genes[ix], self.problem.genes[iy]
         XX, YY  = np.meshgrid(np.linspace(gx['low'], gx['up'], self.GRID), np.linspace(gy['low'], gy['up'], self.GRID))
-        # Fatia pelo ótimo: as outras variáveis ficam no valor da melhor solução, senão o relevo mostraria
-        # um corte arbitrário do domínio em vez do que o algoritmo de fato percorreu.
+        # fatia pelo ótimo: as outras variáveis ficam na melhor solução, senão o corte é arbitrário
         genomes = np.tile(self.problem.encode(self.best), (XX.size, 1))
         genomes[:, ix] = XX.ravel()
         genomes[:, iy] = YY.ravel()
@@ -91,11 +85,11 @@ class Portrait:
         floor = min(float(raw.min()), float(self.bestScore))
         return XX, YY, self.shade(raw, floor).reshape(XX.shape), gx, gy, floor
 
-    # A PROJEÇÃO QUE O PAINEL DE RELEVO EXIGE — SÓ EM 2D ELE É UMA SUPERFÍCIE, E O EIXO PRECISA NASCER 3D
+    # SÓ EM 2D O RELEVO É UMA SUPERFÍCIE, E AÍ O EIXO PRECISA NASCER 3D
     def projection(self):
         return '3d' if self.problem.nVars == 2 else None
 
-    # O PAINEL DE RELEVO MAIS INFORMATIVO PARA A DIMENSÃO, NO EIXO QUE O Plotter JÁ ABRIU
+    # O PAINEL DE RELEVO MAIS INFORMATIVO PARA A DIMENSÃO DO PROBLEMA
     def shape(self, ax):
         if self.problem.nVars == 1:
             return self.curve(ax)
@@ -105,12 +99,10 @@ class Portrait:
         self.heatmap(ax, XX, YY, Z, gx, gy)
 
     def plotGraph(self, save=None):
-        import matplotlib.pyplot as plt
-
         if self.problem.nVars == 1:
             plt.figure(figsize=(9, 5))
             self.curve(plt.subplot(1, 1, 1))
-            return self.close(plt, save)
+            return self.close(save)
 
         XX, YY, Z, gx, gy, floor = self.landscape()
         wide = self.problem.nVars == 2
@@ -119,11 +111,9 @@ class Portrait:
         self.heatmap(fig.add_subplot(grid[0, 0]), XX, YY, Z, gx, gy)
         if wide:
             self.surface(fig.add_subplot(grid[0, 1], projection='3d'), XX, YY, Z, gx, gy, floor)
-        self.close(plt, save)
+        self.close(save)
 
     def plotVariables(self, mode='range', save=None):
-        import matplotlib.pyplot as plt
-
         if mode not in ('range', 'temporal'):
             raise ValueError(f"mode inválido '{mode}'; use 'range' ou 'temporal'.")
         X, y, gen = self.samples()
@@ -133,18 +123,24 @@ class Portrait:
         plt.figure(figsize=(14, 4 * rows))
         for i, g in enumerate(self.problem.genes):
             draw(plt.subplot(rows, self.COLS, i + 1), i, g, X, y, gen)
-        self.close(plt, save)
+        self.close(save)
 
-    # DISPERSÃO NO RANGE DO GENE: ONDE A MÉTRICA MELHORA DENTRO DOS BOUNDS, COM A TENDÊNCIA E O ÓTIMO
-    def range(self, ax, i, g, X, y, gen):
+    # O RÓTULO E A COLUNA DA VARIÁVEL JÁ CORTADA NOS BOUNDS; SEM NUVEM A COLUNA VOLTA None
+    def column(self, ax, i, g, X):
         ax.grid(True, alpha=0.3)
         bv    = self.best[g['name']] if self.best else '?'
         title = f"{g['name']}={bv:.4g}" if isinstance(bv, float) else f"{g['name']}={bv}"
         if X is None:
+            return bv, title, None
+        v = np.clip(X[:, i], g['low'], g['up'])
+        return bv, title, v if g['type'] == 'real' else np.round(v)
+
+    # ONDE A MÉTRICA MELHORA DENTRO DOS BOUNDS, COM A TENDÊNCIA E O ÓTIMO
+    def range(self, ax, i, g, X, y, gen):
+        bv, title, x = self.column(ax, i, g, X)
+        if x is None:
             return ax.set(title=title, xlabel=g['name'], ylabel='Métrica')
-        x = np.clip(X[:, i], g['low'], g['up'])
-        x = x if g['type'] == 'real' else np.round(x)
-        x, v = self.spread(x, y)  # cobertura ~uniforme no range: a massa convergida não domina a reta
+        x, v = self.spread(x, y)   # cobertura ~uniforme: a massa convergida não domina a reta
         ax.scatter(x, v, c=v, cmap='viridis', s=22, alpha=0.55, edgecolors='none')
         if x.max() > x.min():
             coef = np.polyfit(x, v, 1)
@@ -157,21 +153,16 @@ class Portrait:
         self.ticks(ax, g)
         ax.set(title=title, xlabel=g['name'], ylabel='Métrica')
 
-    # A MESMA VARIÁVEL AO LONGO DA BUSCA: MOSTRA SE ELA CONVERGE PARA UM VALOR E EM QUE GERAÇÃO
+    # A MESMA VARIÁVEL AO LONGO DA BUSCA: SE CONVERGE, E EM QUE GERAÇÃO
     def temporal(self, ax, i, g, X, y, gen):
-        ax.grid(True, alpha=0.3)
-        bv    = self.best[g['name']] if self.best else '?'
-        title = f"{g['name']}={bv:.4g}" if isinstance(bv, float) else f"{g['name']}={bv}"
-        if X is None:
+        bv, title, v = self.column(ax, i, g, X)
+        if v is None:
             return ax.set(title=title, xlabel=self.xLabel, ylabel=g['name'])
-        v = np.clip(X[:, i], g['low'], g['up'])
-        v = v if g['type'] == 'real' else np.round(v)
         ax.scatter(gen, v, c=y, cmap='viridis', s=22, alpha=0.55, edgecolors='none')
         edges = np.linspace(gen.min(), gen.max() + 1e-9, self.BINS + 1)
         slot  = np.clip(np.digitize(gen, edges) - 1, 0, self.BINS - 1)
         mid   = [(np.median(v[slot == b]), (edges[b] + edges[b + 1]) / 2) for b in range(self.BINS) if (slot == b).any()]
-        # Mediana por bloco de gerações, não média: um outlier de exploração desloca a média e some a
-        # leitura do valor para onde a população está caindo.
+        # mediana por bloco, não média: um outlier de exploração desloca a média
         ax.plot([t for _, t in mid], [m for m, _ in mid], color='crimson', linewidth=1.8, label='Mediana')
         if self.best:
             ax.axhline(self.spot(g, bv), color='red', linestyle='--', linewidth=1.2, label='Melhor')
@@ -180,8 +171,7 @@ class Portrait:
         ax.legend(fontsize=7)
         ax.set(title=title, xlabel=self.xLabel, ylabel=g['name'])
 
-    # A CURVA INTEIRA EM 1D. VAI PELO score E NÃO PELA objective CRUA: ASSIM PASSA PELO decode E VALE PARA
-    # int/cat/bool TAMBÉM, E O RELEVO DESENHADO É O MESMO QUE O OTIMIZADOR ENXERGOU.
+    # VAI PELO score E NÃO PELA objective CRUA: PASSA PELO decode E DESENHA O QUE O OTIMIZADOR ENXERGOU
     def curve(self, ax):
         g  = self.problem.genes[0]
         xs = np.linspace(g['low'], g['up'], 1000)
@@ -216,15 +206,14 @@ class Portrait:
             ax.legend(fontsize=8, loc='upper left')
         ax.set(title=self.tag(f'f = {self.bestScore:.4g}'), xlabel=gx['name'], ylabel=gy['name'])
 
-    # LOG DESLOCADO PELO PISO: A MÉTRICA VARIA ORDENS DE GRANDEZA E SEM ISSO O RELEVO VIRA UM PICO NUM PLANO
+    # LOG DESLOCADO PELO PISO: SEM ISSO O RELEVO VIRA UM PICO NUM PLANO
     def shade(self, z, floor):
         return np.log10(np.asarray(z, float) - floor + 1.0)
 
     def spot(self, g, value):
         return g['values'].index(value) if g['type'] == 'cat' else float(value)
 
-    # EIXO NO RANGE DOS DADOS DENSOS + MARGEM: CORTA SÓ A CAUDA ESPARSA DO LADO DO ÓTIMO E MANTÉM INTEIRA
-    # A NUVEM DE EXPLORAÇÃO DO OUTRO LADO, SEM FORÇAR ZERO NEM DEIXAR FAIXA VAZIA.
+    # CORTA A CAUDA ESPARSA DO LADO DO ÓTIMO E MANTÉM INTEIRA A NUVEM DE EXPLORAÇÃO DO OUTRO
     def frame(self, ax, v):
         lo = np.percentile(v, 5) if self.problem.weight < 0 else v.min()
         hi = v.max() if self.problem.weight < 0 else np.percentile(v, 95)
@@ -234,8 +223,8 @@ class Portrait:
             pad = 0.05 * (hi - lo)
             ax.set_ylim(lo - pad, hi + pad)
 
+    # SEM LEGENDA: O MARCADOR DELA CAI DENTRO DO PAINEL E SE CONFUNDE COM UM SEGUNDO ÓTIMO
     def mark(self, ax, g, bv, score):
-        # Sem legenda: o marcador dela cai dentro do painel e se confunde com um segundo ótimo.
         if self.best is not None and score is not None:
             ax.scatter([self.spot(g, bv)], [score], s=75, color='red', edgecolors='black', linewidths=.8, zorder=6)
 
@@ -247,10 +236,9 @@ class Portrait:
         if g['type'] == 'bool':
             setTicks([0, 1]); setLabels(['False', 'True'])
 
-    # SUBAMOSTRA ~UNIFORME NO RANGE DE x (BINS IGUAIS, TETO POR BIN): NUM OTIMIZADOR A MAIORIA DAS
-    # AVALIAÇÕES CAI PERTO DO ÓTIMO, E SEM ISSO A NUVEM VIRA UMA BOLA SOBRE O MELHOR PONTO.
+    # A MAIORIA DAS AVALIAÇÕES CAI PERTO DO ÓTIMO: SEM SUBAMOSTRAR, A NUVEM VIRA UMA BOLA SOBRE ELE
     def spread(self, x, y, bins=40, per=20):
-        uniq  = np.unique(np.round(np.column_stack([x, y]), 6), axis=0)  # colapsa a pilha convergida idêntica
+        uniq  = np.unique(np.round(np.column_stack([x, y]), 6), axis=0)   # colapsa a pilha convergida
         x, y  = uniq[:, 0], uniq[:, 1]
         if x.max() <= x.min():
             return x, y

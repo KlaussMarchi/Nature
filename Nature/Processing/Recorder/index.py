@@ -2,8 +2,7 @@ import numpy as np
 from tqdm.auto import tqdm
 
 
-# CLASSE QUE ACUMULA O HISTÓRICO DA BUSCA (ESTATÍSTICAS POR GERAÇÃO + NUVEM DE AMOSTRAS) — ALIMENTADA NO
-# LOOP DE TODO MODELO E CONSUMIDA DEPOIS PELO Plotter.
+# HISTÓRICO DA BUSCA: ESTATÍSTICAS POR GERAÇÃO E NUVEM DE AMOSTRAS, ALIMENTADAS NO tick() DE TODO MODELO.
 class Recorder:
     SAMPLES = 200      # gerações retidas na nuvem (subamostra temporal p/ o scatter do Plotter)
     PER_GEN = 40       # teto de indivíduos por geração (limita memória; a cobertura do range é feita no Plotter)
@@ -16,8 +15,7 @@ class Recorder:
         self.verbose = verbose
         self.desc    = desc
         self.unit    = unit
-        # Sem teto por dimensão a nuvem virava 97% do checkpoint em alta dimensão (38 de 39,5 MB com D=500),
-        # reescritos a cada 10 gerações. O Plotter desenha no máximo 800 pontos por variável de qualquer jeito.
+        # sem teto a nuvem virava 97% do checkpoint em D=500, e o Plotter desenha 800 pontos por variável
         self.perGen  = max(1, min(self.PER_GEN, self.BUDGET // (2 * self.SAMPLES * len(genes))))
         self.records = {k: [] for k in self.KEYS}
         self.cloudX  = []
@@ -30,9 +28,8 @@ class Recorder:
         return tqdm(span, desc=self.desc, unit=self.unit) if self.verbose else span
 
     def record(self, gen, nevals, fits):
+        # retomada re-registra a geração onde parou: descarta o trecho refeito para não duplicar ponto
         if self.records['gen'] and gen <= self.records['gen'][-1]:
-            # Retomada: o modelo re-registra a geração onde parou. Descarta o trecho refeito p/ não duplicar
-            # ponto no eixo; se a campanha recomeça do zero (config mudou), a nuvem antiga também não vale.
             keep = int(np.searchsorted(self.records['gen'], gen))
             for k in self.KEYS:
                 self.records[k] = self.records[k][:keep]
@@ -44,16 +41,13 @@ class Recorder:
         self.records['min'].append(np.min(fits, axis=0))
         self.records['max'].append(np.max(fits, axis=0))
 
+    # NUVEM DO QUE FOI EXPLORADO, PARA OS SCATTERS: perGen INDIVÍDUOS POR GERAÇÃO, AFINADA PELA METADE AO
+    # PASSAR DE 2·SAMPLES GERAÇÕES. A GERAÇÃO VEM DO record(), QUE TODO MODELO CHAMA ANTES DAQUI.
     def sample(self, genomes, fits):
-        # Nuvem (geração -> genoma -> métrica) do que foi explorado, p/ os scatters do Plotter. Amostra perGen
-        # indivíduos por geração (senão a população inicial gigante domina) e afina pela metade ao passar de
-        # 2·SAMPLES gerações — memória limitada. A geração vem do record(), que todo modelo chama antes daqui.
         f    = np.asarray(fits, float)
         y    = f[:, 0] if f.ndim > 1 else f
         pick = np.arange(len(y)) if len(y) <= self.perGen else self.srng.choice(len(y), self.perGen, replace=False)
-        # np.take copia. Sem a cópia a nuvem guardava uma view do array que o modelo sobrescreve in-place a
-        # cada geração, e todas as gerações acabavam mostrando a população final — só não aparecia quando a
-        # população passava de perGen, porque aí o sorteio já copiava.
+        # np.take copia: sem isso a nuvem guardaria uma view do array que o modelo sobrescreve in-place
         self.cloudX.append(np.take(np.asarray(genomes, float), pick, axis=0))
         self.cloudY.append(np.take(y, pick))
         self.cloudG.append(self.records['gen'][-1])
@@ -66,9 +60,9 @@ class Recorder:
         gens = np.repeat(self.cloudG, [len(y) for y in self.cloudY])
         return np.vstack(self.cloudX), np.concatenate(self.cloudY), gens
 
+    # VAI JUNTO DO state.npz, SENÃO A RETOMADA PLOTA SÓ O TRECHO DEPOIS DO RESTART. A NUVEM É RAGGED:
+    # SAI ACHATADA COM OS ÍNDICES DE CORTE.
     def get(self):
-        # Snapshot p/ a Memory gravar junto do state.npz: sem ele a retomada perde tudo que veio antes e o
-        # plot mostra só o trecho rodado depois do restart. A nuvem é ragged -> vai achatada + índices de corte.
         state = {'rec' + k.capitalize(): np.array(self.records[k]) for k in self.KEYS}
         state['recCloudX'] = np.vstack(self.cloudX) if self.cloudX else np.zeros((0, len(self.genes)))
         state['recCloudY'] = np.concatenate(self.cloudY) if self.cloudY else np.zeros(0)

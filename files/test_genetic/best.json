@@ -13,8 +13,8 @@
     "x",
     "y"
   ],
-  "stopped": 250,
-  "runs": 5,
+  "stopped": 450,
+  "runs": 9,
   "params": {
     "population": 150,
     "generations": 50,
@@ -23,5 +23,5 @@
     "patience": 60,
     "target": null
   },
-  "updated": "2026-08-12T18:09:44"
+  "updated": "2026-08-13T16:13:31"
 }
